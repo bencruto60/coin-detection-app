@@ -31,10 +31,14 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include=".flaskenv" />
+    <Content Include=".gitignore" />
     <Content Include="model\best.pt" />
+    <Content Include="requirements.txt" />
+    <Content Include="runtime.txt" />
     <Content Include="static\css\main.css" />
     <Content Include="templates\index.html" />
     <Content Include="templates\result.html" />
+    <Content Include="vercel.json" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

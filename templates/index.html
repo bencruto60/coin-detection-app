@@ -1,89 +1,361 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Coin Detection Upload</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coin Detection</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
+        :root {
+            --baby-blue: #89CFF0;
+            --baby-blue-light: #E1F5FE;
+            --baby-blue-dark: #4FC3F7;
+            --dark-bg: #1a1a2e;
+            --darker-bg: #16213e;
+            --card-bg: #0f3460;
+            --text-light: #e6e6e6;
+            --text-lighter: #ffffff;
+            --border-dark: #2a3a5e;
+        }
+
+        body {
+            background: var(--dark-bg);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text-light);
+        }
+
+        .main-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        .auth-container {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border-dark);
+        }
+
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+            background: var(--card-bg);
+            border: 1px solid var(--border-dark);
+        }
+
+        .card-header {
+            background-color: var(--baby-blue-dark);
+            color: var(--text-lighter);
+            font-weight: 600;
+            padding: 1rem;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .btn-primary {
+            background-color: var(--baby-blue-dark);
+            border-color: var(--baby-blue-dark);
+            font-weight: 500;
+            padding: 0.5rem 1.5rem;
+            border-radius: 8px;
+        }
+
+            .btn-primary:hover {
+                background-color: var(--baby-blue);
+                border-color: var(--baby-blue);
+                transform: translateY(-1px);
+                box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            }
+
+        .btn-success {
+            background-color: var(--baby-blue);
+            border-color: var(--baby-blue);
+            font-weight: 500;
+            padding: 0.75rem;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+            .btn-success:hover {
+                background-color: var(--baby-blue-dark);
+                border-color: var(--baby-blue-dark);
+                transform: translateY(-1px);
+            }
+
+        .form-control {
+            border-radius: 8px;
+            padding: 0.75rem;
+            border: 1px solid var(--border-dark);
+            background-color: var(--darker-bg);
+            color: var(--text-light);
+        }
+
+            .form-control:focus {
+                border-color: var(--baby-blue);
+                box-shadow: 0 0 0 0.25rem rgba(137, 207, 240, 0.25);
+                background-color: var(--darker-bg);
+                color: var(--text-light);
+            }
+
+        #loading-spinner {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+        }
+
+        .result-container {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border-dark);
+        }
+
         #result-images img {
-            max-width: 100%;
-            border-radius: 10px;
+            max-height: 250px;
+            object-fit: contain;
+            margin: 0.5rem auto;
+            border: 2px solid var(--baby-blue);
+            border-radius: 12px;
+            padding: 5px;
+            display: block;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            background: var(--darker-bg);
+        }
+
+        .alert {
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .alert-success {
+            background-color: rgba(137, 207, 240, 0.2);
+            border-color: var(--baby-blue);
+            color: var(--text-light);
+        }
+
+        .alert-warning {
+            background-color: rgba(255, 193, 7, 0.2);
+            border-color: #ffc107;
+            color: var(--text-light);
+        }
+
+        .history-container {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            border: 1px solid var(--border-dark);
+        }
+
+        .dropdown-menu {
+            max-height: 300px;
+            overflow-y: auto;
+            min-width: 250px;
+            border-radius: 8px;
+            border: 1px solid var(--border-dark);
+            background: var(--darker-bg);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+        }
+
+        .dropdown-item {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border-dark);
+            color: var(--text-light);
+        }
+
+            .dropdown-item:last-child {
+                border-bottom: none;
+            }
+
+            .dropdown-item:hover {
+                background-color: rgba(137, 207, 240, 0.1);
+            }
+
+            .dropdown-item img {
+                margin-top: 0.5rem;
+                border-radius: 4px;
+            }
+
+        h4, h5 {
+            color: var(--text-lighter);
+            font-weight: 600;
+        }
+
+        #total-value {
+            color: var(--baby-blue);
+            font-weight: 700;
+        }
+
+        .form-label {
+            color: var(--text-lighter);
+        }
+
+        .logout-container {
+            margin-top: 1.5rem;
+            text-align: center;
+        }
+
+        /* Modal styles */
+        .modal-content {
+            background: var(--card-bg);
+            border: 1px solid var(--border-dark);
+        }
+
+        .modal-header {
+            background: var(--baby-blue-dark);
+            color: var(--text-lighter);
+            border-bottom: 1px solid var(--border-dark);
+        }
+
+        .modal-footer {
+            border-top: 1px solid var(--border-dark);
+        }
+
+        .money-added {
+            font-size: 2rem;
+            color: var(--baby-blue);
+            font-weight: bold;
+            margin: 1rem 0;
+        }
+
+        /* Mobile responsive adjustments */
+        @media (max-width: 576px) {
+            .main-container {
+                padding: 0.5rem;
+            }
+
+            .card-body, .auth-container, .result-container, .history-container {
+                padding: 1rem;
+            }
+
+            #result-images img {
+                max-height: 200px;
+            }
+
+            .d-flex.justify-content-center.gap-4.flex-wrap {
+                gap: 1rem !important;
+            }
         }
     </style>
 </head>
-<body class="bg-light">
-
-    <div class="container py-5">
-        <h1 class="mb-4 text-primary text-center">💰 Coin Detection Camera</h1>
-        <p class="text-center mb-4">Position your coin and upload an image for analysis</p>
-
-        <!-- Auth Controls -->
-        <div class="text-center mb-4">
-            <button id="login-btn" class="btn btn-outline-dark me-2">🔐 Sign in with Google</button>
-            <button id="logout-btn" class="btn btn-outline-danger d-none">🚪 Sign Out</button>
-            <p id="user-email" class="mt-2 text-muted"></p>
+<body>
+    <div class="main-container">
+        <div id="loading-spinner">
+            <div class="spinner-border text-primary" role="status" style="width: 4rem; height: 4rem;">
+                <span class="visually-hidden">Loading...</span>
+            </div>
         </div>
 
-        <!-- Upload Form -->
-        <form id="upload-form" class="mx-auto" style="max-width: 400px;">
-            <div class="mb-3">
-                <input class="form-control" type="file" name="image" accept="image/*" required />
+        <div class="auth-container text-center">
+            <button id="login-btn" class="btn btn-primary">Login with Google</button>
+            <p id="user-email" class="mt-2 mb-0"></p>
+        </div>
+
+        <div class="card">
+            <div class="card-header text-center">
+                Coin Detection
             </div>
-            <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">
-                📸 Capture & Analyze
-            </button>
-        </form>
+            <div class="card-body">
+                <form id="upload-form">
+                    <div class="mb-3">
+                        <label for="image" class="form-label">Upload a coin image:</label>
+                        <input type="file" name="image" class="form-control" id="image" required>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100">Upload and Detect</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="result-container text-center" id="result-images">
+            <div class="d-flex justify-content-center gap-4 flex-wrap">
+                <div>
+                    <h5>Original Image</h5>
+                    <img id="original-img" class="img-fluid" alt="Original Image">
+                </div>
+                <div>
+                    <h5>Detected Image</h5>
+                    <img id="result-img" class="img-fluid" alt="Detected Image">
+                </div>
+            </div>
+            <div id="result-info" class="mt-4"></div>
+        </div>
+
+        <div class="history-container">
+            <h4 class="text-center mb-4">🧾 Detection History</h4>
+            <h5 class="text-center mb-4">Total Saved: <span id="total-value">₱0.00</span></h5>
+
+            <div class="dropdown text-center">
+                <button class="btn btn-outline-primary dropdown-toggle" type="button" id="historyDropdownBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                    Show History Details
+                </button>
+                <ul id="history-list" class="dropdown-menu p-3" aria-labelledby="historyDropdownBtn">
+                    <!-- History items will be appended here -->
+                </ul>
+            </div>
+        </div>
+
+        <div class="logout-container">
+            <button id="logout-btn" class="btn btn-secondary d-none">Logout</button>
+        </div>
     </div>
 
-    <!-- Result Modal -->
-    <div class="modal fade" id="resultModal" tabindex="-1" aria-labelledby="resultModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
+    <!-- Money Added Modal -->
+    <div class="modal fade" id="moneyAddedModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="resultModalLabel">🔍 Detection Result</h5>
+                    <h5 class="modal-title">💰 Money Added!</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body" id="result-images" style="text-align:center;">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <p><strong>Original</strong></p>
-                            <img id="original-img" src="#" alt="Original" />
-                        </div>
-                        <div class="col-md-6">
-                            <p><strong>Detection</strong></p>
-                            <img id="result-img" src="#" alt="Detection" />
-                        </div>
+                <div class="modal-body text-center">
+                    <div id="modal-content">
+                        <!-- Content will be inserted here -->
                     </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-    <!-- Supabase & App Logic -->
     <script>
-        const SUPABASE_URL = 'https://tgvycqmnzhasmxomfruq.supabase.co'; // 🔁 Replace this
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRndnljcW1uemhhc214b21mcnVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg2NzM0MjQsImV4cCI6MjA2NDI0OTQyNH0.EcLI1hOUvaGIrY_3b24qqv6-VODQWMMKnUo18q_P-lk'; // 🔁 Replace this
+        const SUPABASE_URL = 'https://tgvycqmnzhasmxomfruq.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRndnljcW1uemhhc214b21mcnVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg2NzM0MjQsImV4cCI6MjA2NDI0OTQyNH0.EcLI1hOUvaGIrY_3b24qqv6-VODQWMMKnUo18q_P-lk';
 
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
         const loginBtn = document.getElementById('login-btn');
         const logoutBtn = document.getElementById('logout-btn');
         const userEmailDisplay = document.getElementById('user-email');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const resultInfo = document.getElementById('result-info');
+        const moneyAddedModal = new bootstrap.Modal(document.getElementById('moneyAddedModal'));
         let user = null;
 
         async function checkAuth() {
             const { data: { session } } = await supabaseClient.auth.getSession();
             user = session?.user || null;
-
             if (user) {
                 loginBtn.classList.add('d-none');
                 logoutBtn.classList.remove('d-none');
                 userEmailDisplay.textContent = `Logged in as ${user.email}`;
+                await loadHistory();
             } else {
                 loginBtn.classList.remove('d-none');
                 logoutBtn.classList.add('d-none');
@@ -110,33 +382,128 @@
         const form = document.getElementById('upload-form');
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-
             if (!user) {
                 alert('Please sign in first.');
                 return;
             }
 
             const formData = new FormData(form);
+            loadingSpinner.style.display = 'block';
+            resultInfo.innerHTML = '';
 
-            const response = await fetch('{{ url_for("detect") }}', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-User-ID': user.id
-                }
-            });
+            const coinMap = {
+                "1_Back": 1.00,
+                "1_Front": 1.00,
+                "5 Back": 5.00,
+                "5 Front": 5.00,
+                "10 Back": 10.00,
+                "10 Front": 10.00,
+                "20 Back": 20.00,
+                "20 Front": 20.00,
+            };
 
-            if (response.ok) {
+            try {
+                const response = await fetch('/detect', {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-User-ID': user.id }
+                });
+
                 const data = await response.json();
                 document.getElementById('original-img').src = data.original;
                 document.getElementById('result-img').src = data.result;
 
-                const resultModal = new bootstrap.Modal(document.getElementById('resultModal'));
-                resultModal.show();
-            } else {
-                alert('Something went wrong. Please try again.');
+                if (!data.detections || data.detections.length === 0) {
+                    resultInfo.innerHTML = `
+                            <div class="alert alert-warning">
+                                <p>Could not identify any coins. Try:</p>
+                                <ul class="text-start">
+                                    <li>Better lighting</li>
+                                    <li>Clearer image</li>
+                                    <li>Different angle</li>
+                                </ul>
+                            </div>`;
+                } else {
+                    let totalValue = 0;
+                    let detectedCoinsList = '';
+
+                    data.detections.forEach(d => {
+                        const val = coinMap[d.label] || 0;
+                        if (val > 0) {
+                            totalValue += val;
+                            detectedCoinsList += `<li>${d.label} (₱${val.toFixed(2)})</li>`;
+                        }
+                    });
+
+                    if (totalValue === 0) {
+                        resultInfo.innerHTML = `
+                                <div class="alert alert-warning">
+                                    <p>Could not identify any coins. Try:</p>
+                                    <ul class="text-start">
+                                        <li>Better lighting</li>
+                                        <li>Clearer image</li>
+                                        <li>Different angle</li>
+                                    </ul>
+                                </div>`;
+                    } else {
+                        resultInfo.innerHTML = `
+                                <div class="alert alert-success text-start">
+                                    <p class="fw-bold">🪙 Detected coins:</p>
+                                    <ul>${detectedCoinsList}</ul>
+                                    <p class="fw-bold">Total value: ₱${totalValue.toFixed(2)}</p>
+                                </div>`;
+
+                        const modalContent = document.getElementById('modal-content');
+                        modalContent.innerHTML = `
+                                <div class="money-added">+₱${totalValue.toFixed(2)}</div>
+                                <p class="fw-bold">🪙 Detected coins:</p>
+                                <ul class="text-start">${detectedCoinsList}</ul>
+                            `;
+                        moneyAddedModal.show();
+                    }
+                }
+
+                await loadHistory();
+            } catch (err) {
+                console.error("Error:", err);
+                alert('Detection failed. See console for details.');
+            } finally {
+                loadingSpinner.style.display = 'none';
             }
         });
+
+        async function loadHistory() {
+            if (!user) return;
+
+            try {
+                const res = await fetch('/history', {
+                    headers: { 'X-User-ID': user.id }
+                });
+
+                const data = await res.json();
+                const historyList = document.getElementById('history-list');
+                const totalValueDisplay = document.getElementById('total-value');
+                historyList.innerHTML = '';
+
+                if (data.history && data.history.length > 0) {
+                    data.history.forEach(item => {
+                        const li = document.createElement('li');
+                        li.className = 'dropdown-item';
+                        li.innerHTML = `🪙 <strong>${item.coin_name}</strong> - ₱${item.coin_value.toFixed(2)}<br><img src="${item.image_url}" height="40">`;
+                        historyList.appendChild(li);
+                    });
+                } else {
+                    const li = document.createElement('li');
+                    li.className = 'dropdown-item disabled';
+                    li.textContent = 'No history yet.';
+                    historyList.appendChild(li);
+                }
+
+                totalValueDisplay.textContent = `₱${data.total_value.toFixed(2)}`;
+            } catch (err) {
+                console.error("Error loading history:", err);
+            }
+        }
     </script>
 </body>
 </html>
