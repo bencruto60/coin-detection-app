@@ -3,23 +3,25 @@ from supabase import create_client
 import os
 import uuid
 
-# Conditional import for YOLO and CV2 (only import if not in Vercel environment)
-try:
-    from ultralytics import YOLO
-    import cv2
-    LOCAL_DEV = True
-except ImportError:
-    LOCAL_DEV = False
+# Initialize model globally with lazy loading
+model = None
+LOCAL_DEV = True  # Force local behavior for testing
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 
-# Initialize model only in local dev or if not on Vercel
-model = None
-if LOCAL_DEV:
-    # Initialize YOLO model
-    model = YOLO('model/best (1).pt')
-    print("Model class names:", model.names) if model else None
+# Ensure upload folder exists
+if not os.path.exists(app.config['UPLOAD_FOLDER']):
+    os.makedirs(app.config['UPLOAD_FOLDER'])
+
+# Initialize YOLO model
+def load_model():
+    global model
+    if model is None:
+        from ultralytics import YOLO
+        model = YOLO('model/best (1).pt')
+        print("Model class names:", model.names)
+    return model
 
 # Supabase credentials
 SUPABASE_URL = 'https://tgvycqmnzhasmxomfruq.supabase.co'
@@ -32,75 +34,76 @@ def index():
 
 @app.route('/detect', methods=['POST'])
 def detect():
-    if not LOCAL_DEV:
-        return jsonify({'error': 'Image processing not available on Vercel'}), 501
-    
-    if 'image' not in request.files:
-        return jsonify({'error': 'No image uploaded'}), 400
+    try:
+        import cv2
+        model = load_model()
+        
+        if 'image' not in request.files:
+            return jsonify({'error': 'No image uploaded'}), 400
 
-    file = request.files['image']
-    if file.filename == '':
-        return jsonify({'error': 'No selected file'}), 400
+        file = request.files['image']
+        if file.filename == '':
+            return jsonify({'error': 'No selected file'}), 400
 
-    filename = f"{uuid.uuid4()}.jpg"
-    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-    file.save(filepath)
+        filename = f"{uuid.uuid4()}.jpg"
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filepath)
 
-    # Run prediction
-    results = model.predict(filepath, conf=0.5)
+        results = model.predict(filepath, conf=0.5)
+        result_image_path = os.path.join(app.config['UPLOAD_FOLDER'], f"detected_{filename}")
+        annotated_image = results[0].plot()
+        cv2.imwrite(result_image_path, annotated_image)
 
-    # Save annotated image
-    result_image_path = os.path.join(app.config['UPLOAD_FOLDER'], f"detected_{filename}")
-    annotated_image = results[0].plot()
-    cv2.imwrite(result_image_path, annotated_image)
-
-    # Get all detections
-    detections = []
-    if results[0].boxes is not None:
-        for box in results[0].boxes:
-            class_id = int(box.cls)
-            confidence = float(box.conf)
-            label = results[0].names[class_id]
-            detections.append({
-                'label': label,
-                'confidence': confidence
-            })
-
-    coin_map = {
-        "1_Back": ("1 Peso", 1.00),
-        "1_Front": ("1 Peso", 1.00),
-        "5 Back": ("5 Peso", 5.00),
-        "5 Front": ("5 Peso", 5.00),
-        "10 Back": ("10 Peso", 10.00),
-        "10 Front": ("10 Peso", 10.00),
-        "20 Back": ("20 Peso", 20.00),
-        "20 Front": ("20 Peso", 20.00),
-    }
-
-    user_id = request.headers.get("X-User-ID")
-    if user_id:
-        rows_to_insert = []
-        for detection in detections:
-            coin_name, coin_value = coin_map.get(detection['label'], ("Unknown", 0.00))
-            if coin_name != "Unknown":
-                rows_to_insert.append({
-                    "user_id": user_id,
-                    "coin_name": coin_name,
-                    "coin_value": coin_value,
-                    "image_url": url_for('static', filename=f'uploads/{filename}', _external=True)
+        detections = []
+        if results[0].boxes is not None:
+            for box in results[0].boxes:
+                class_id = int(box.cls)
+                confidence = float(box.conf)
+                label = results[0].names[class_id]
+                detections.append({
+                    'label': label,
+                    'confidence': confidence
                 })
 
-        if rows_to_insert:
-            try:
-                response = supabase.table("savings").insert(rows_to_insert).execute()
-            except Exception as e:
-                print("Supabase error:", e)
+        coin_map = {
+            "1_Back": ("1 Peso", 1.00),
+            "1_Front": ("1 Peso", 1.00),
+            "5 Back": ("5 Peso", 5.00),
+            "5 Front": ("5 Peso", 5.00),
+            "10 Back": ("10 Peso", 10.00),
+            "10 Front": ("10 Peso", 10.00),
+            "20 Back": ("20 Peso", 20.00),
+            "20 Front": ("20 Peso", 20.00),
+        }
 
-    return jsonify({
-        'original': url_for('static', filename=f'uploads/{filename}'),
-        'result': url_for('static', filename=f'uploads/detected_{filename}'),
-        'detections': detections,
-    })
+        user_id = request.headers.get("X-User-ID")
+        if user_id:
+            rows_to_insert = []
+            for detection in detections:
+                coin_name, coin_value = coin_map.get(detection['label'], ("Unknown", 0.00))
+                if coin_name != "Unknown":
+                    rows_to_insert.append({
+                        "user_id": user_id,
+                        "coin_name": coin_name,
+                        "coin_value": coin_value,
+                        "image_url": url_for('static', filename=f'uploads/{filename}', _external=True)
+                    })
+
+            if rows_to_insert:
+                try:
+                    response = supabase.table("savings").insert(rows_to_insert).execute()
+                except Exception as e:
+                    print("Supabase error:", e)
+
+        return jsonify({
+            'original': url_for('static', filename=f'uploads/{filename}'),
+            'result': url_for('static', filename=f'uploads/detected_{filename}'),
+            'detections': detections,
+        })
+
+    except Exception as e:
+        print(f"Detection error: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/total', methods=['GET'])
 def total_value():
