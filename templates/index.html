@@ -1,0 +1,142 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Coin Detection Upload</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        #result-images img {
+            max-width: 100%;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+    <div class="container py-5">
+        <h1 class="mb-4 text-primary text-center">💰 Coin Detection Camera</h1>
+        <p class="text-center mb-4">Position your coin and upload an image for analysis</p>
+
+        <!-- Auth Controls -->
+        <div class="text-center mb-4">
+            <button id="login-btn" class="btn btn-outline-dark me-2">🔐 Sign in with Google</button>
+            <button id="logout-btn" class="btn btn-outline-danger d-none">🚪 Sign Out</button>
+            <p id="user-email" class="mt-2 text-muted"></p>
+        </div>
+
+        <!-- Upload Form -->
+        <form id="upload-form" class="mx-auto" style="max-width: 400px;">
+            <div class="mb-3">
+                <input class="form-control" type="file" name="image" accept="image/*" required />
+            </div>
+            <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">
+                📸 Capture & Analyze
+            </button>
+        </form>
+    </div>
+
+    <!-- Result Modal -->
+    <div class="modal fade" id="resultModal" tabindex="-1" aria-labelledby="resultModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="resultModalLabel">🔍 Detection Result</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="result-images" style="text-align:center;">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Original</strong></p>
+                            <img id="original-img" src="#" alt="Original" />
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Detection</strong></p>
+                            <img id="result-img" src="#" alt="Detection" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Supabase & App Logic -->
+    <script>
+        const SUPABASE_URL = 'https://tgvycqmnzhasmxomfruq.supabase.co'; // 🔁 Replace this
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRndnljcW1uemhhc214b21mcnVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg2NzM0MjQsImV4cCI6MjA2NDI0OTQyNH0.EcLI1hOUvaGIrY_3b24qqv6-VODQWMMKnUo18q_P-lk'; // 🔁 Replace this
+
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        const loginBtn = document.getElementById('login-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const userEmailDisplay = document.getElementById('user-email');
+        let user = null;
+
+        async function checkAuth() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            user = session?.user || null;
+
+            if (user) {
+                loginBtn.classList.add('d-none');
+                logoutBtn.classList.remove('d-none');
+                userEmailDisplay.textContent = `Logged in as ${user.email}`;
+            } else {
+                loginBtn.classList.remove('d-none');
+                logoutBtn.classList.add('d-none');
+                userEmailDisplay.textContent = '';
+            }
+        }
+
+        loginBtn.addEventListener('click', async () => {
+            await supabaseClient.auth.signInWithOAuth({ provider: 'google' });
+        });
+
+        logoutBtn.addEventListener('click', async () => {
+            await supabaseClient.auth.signOut();
+            await checkAuth();
+        });
+
+        supabaseClient.auth.onAuthStateChange((_event, session) => {
+            user = session?.user || null;
+            checkAuth();
+        });
+
+        checkAuth();
+
+        const form = document.getElementById('upload-form');
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (!user) {
+                alert('Please sign in first.');
+                return;
+            }
+
+            const formData = new FormData(form);
+
+            const response = await fetch('{{ url_for("detect") }}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-User-ID': user.id
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                document.getElementById('original-img').src = data.original;
+                document.getElementById('result-img').src = data.result;
+
+                const resultModal = new bootstrap.Modal(document.getElementById('resultModal'));
+                resultModal.show();
+            } else {
+                alert('Something went wrong. Please try again.');
+            }
+        });
+    </script>
+</body>
+</html>
