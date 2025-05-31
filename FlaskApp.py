@@ -8,6 +8,10 @@ import uuid
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 
+# Ensure upload folder exists
+if not os.path.exists(app.config['UPLOAD_FOLDER']):
+    os.makedirs(app.config['UPLOAD_FOLDER'])
+
 # Initialize YOLO model
 model = YOLO('model/best (1).pt')
 
@@ -20,7 +24,6 @@ supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 @app.route('/')
 def index():
     return render_template('index.html')
-
 
 @app.route('/detect', methods=['POST'])
 def detect():
@@ -75,6 +78,7 @@ def detect():
         'result': url_for('static', filename=f'uploads/detected_{filename}')
     })
 
-
-if __name__ == '__main__':
-    app.run(debug=True)
+if __name__ == "__main__":
+    import os
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
