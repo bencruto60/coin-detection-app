@@ -5,7 +5,6 @@ import uuid
 
 # Initialize model globally with lazy loading
 model = None
-LOCAL_DEV = True  # Force local behavior for testing
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
@@ -19,7 +18,8 @@ def load_model():
     global model
     if model is None:
         from ultralytics import YOLO
-        model = YOLO('model/best (1).pt')
+        model_path = os.getenv('MODEL_PATH', 'model/best.pt')
+        model = YOLO(model_path)
         print("Model class names:", model.names)
     return model
 

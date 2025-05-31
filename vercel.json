@@ -6,7 +6,7 @@
       "use": "@vercel/python",
       "config": {
         "runtime": "python3.11",
-        "includeFiles": [ "model/best (1).pt" ],
+        "includeFiles": [ "model/best.pt" ],
         "maxLambdaSize": "15mb"
       }
     },
