@@ -5,8 +5,9 @@
       "src": "FlaskApp.py",
       "use": "@vercel/python",
       "config": {
-        "maxLambdaSize": "15mb",
-        "includeFiles": [ "model/best (1).pt" ]
+        "runtime": "python3.11",
+        "includeFiles": [ "model/best (1).pt" ],
+        "maxLambdaSize": "15mb"
       }
     },
     {
