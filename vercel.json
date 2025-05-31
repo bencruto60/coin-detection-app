@@ -3,7 +3,15 @@
   "builds": [
     {
       "src": "FlaskApp.py",
-      "use": "@vercel/python"
+      "use": "@vercel/python",
+      "config": {
+        "maxLambdaSize": "15mb",
+        "includeFiles": [ "static/**", "templates/**" ]
+      }
+    },
+    {
+      "src": "static/**",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
@@ -13,7 +21,8 @@
     },
     {
       "src": "/(.*)",
-      "dest": "FlaskApp.py"
+      "dest": "FlaskApp.py",
+      "methods": [ "GET", "POST", "PUT", "DELETE", "OPTIONS" ]
     }
   ]
 }
