@@ -23,17 +23,10 @@ def load_model():
         print("Model class names:", model.names)
     return model
 
-# Supabase credentials - MODIFIED INITIALIZATION
+# Supabase credentials
 SUPABASE_URL = 'https://tgvycqmnzhasmxomfruq.supabase.co'
 SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRndnljcW1uemhhc214b21mcnVxIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0ODY3MzQyNCwiZXhwIjoyMDY0MjQ5NDI0fQ.GvALKP_8Pl0cxQCmQrrNGNMkdp0qOZWMgaLeIuK02M8'
-supabase = create_client(
-    SUPABASE_URL,
-    SUPABASE_KEY,
-    options={
-        'auto_refresh_token': False,
-        'persist_session': False
-    }
-)
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 @app.route('/')
 def index():
