@@ -22,7 +22,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="FlaskApp.py" />
-    <Compile Include="modal_app.py" />
     <Compile Include="__init__.py" />
   </ItemGroup>
   <ItemGroup>
@@ -36,6 +35,7 @@
     <Content Include=".gitignore" />
     <Content Include="model\best %281%29.pt" />
     <Content Include="model\best.pt" />
+    <Content Include="render.yaml" />
     <Content Include="runtime.txt" />
     <Content Include="static\css\main.css" />
     <Content Include="templates\index.html" />
