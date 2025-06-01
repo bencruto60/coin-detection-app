@@ -4,14 +4,14 @@ services:
     env: python
     buildCommand: |
       pip install -r requirements.txt
-      mkdir -p model static/uploads
-    startCommand: python flaskapp.py  # Or "uvicorn flaskapp:app" if using ASGI
+      mkdir -p static/uploads
+    startCommand: gunicorn --bind 0.0.0.0:$PORT FlaskApp:app  # Changed to production server
     envVars:
       - key: PORT
         value: 10000
       - key: MODEL_PATH
         value: model/best.pt
       - key: SUPABASE_URL
-        value: your_url
+        value: https://tgvycqmnzhasmxomfruq.supabase.co  # Use your exact URL
       - key: SUPABASE_KEY
-        value: your_key
+        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRndnljcW1uemhhc214b21mcnVxIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0ODY3MzQyNCwiZXhwIjoyMDY0MjQ5NDI0fQ.GvALKP_8Pl0cxQCmQrrNGNMkdp0qOZWMgaLeIuK02M8  # Your full key
