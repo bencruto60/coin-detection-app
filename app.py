@@ -1,14 +1,17 @@
+import os
 from flask import Flask, request, jsonify
 from ultralytics import YOLO
 import cv2
-import os
 
 app = Flask(__name__)
+
+# Configure upload folder
 app.config['UPLOAD_FOLDER'] = 'uploads'
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-# Load model at startup
-model = YOLO('model/best.pt')
+# Load model using environment variable
+model_path = os.environ.get('MODEL_PATH', 'model/best.pt')
+model = YOLO(model_path)
 
 @app.route('/detect', methods=['POST'])
 def detect():
@@ -35,4 +38,5 @@ def detect():
     return jsonify({'detections': detections})
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=10000)
+    port = int(os.environ.get('PORT', 8000))  # Uses Render's $PORT or defaults to 8000
+    app.run(host='0.0.0.0', port=port)
