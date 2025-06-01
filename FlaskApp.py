@@ -85,8 +85,7 @@ def detect():
                     rows_to_insert.append({
                         "user_id": user_id,
                         "coin_name": coin_name,
-                        "coin_value": coin_value,
-                        "image_url": url_for('static', filename=f'uploads/{filename}', _external=True)
+                        "coin_value": coin_value
                     })
 
             if rows_to_insert:

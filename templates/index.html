@@ -489,7 +489,8 @@
                     data.history.forEach(item => {
                         const li = document.createElement('li');
                         li.className = 'dropdown-item';
-                        li.innerHTML = `🪙 <strong>${item.coin_name}</strong> - ₱${item.coin_value.toFixed(2)}<br><img src="${item.image_url}" height="40">`;
+                        // Removed the <img> tag here
+                        li.innerHTML = `🪙 <strong>${item.coin_name}</strong> - ₱${item.coin_value.toFixed(2)}`;
                         historyList.appendChild(li);
                     });
                 } else {
@@ -504,6 +505,7 @@
                 console.error("Error loading history:", err);
             }
         }
+
     </script>
 </body>
 </html>
