@@ -1,13 +1,17 @@
 services:
   - type: web
     name: coin-detector
-    runtime: python
+    env: python
     buildCommand: |
       pip install -r requirements.txt
-      mkdir -p model
-    startCommand: gunicorn --timeout 300 --bind 0.0.0.0:$PORT app:app
+      mkdir -p model static/uploads
+    startCommand: python flaskapp.py  # Or "uvicorn flaskapp:app" if using ASGI
     envVars:
       - key: PORT
-        generateValue: true
+        value: 10000
       - key: MODEL_PATH
-        value: ./model/best.pt
+        value: model/best.pt
+      - key: SUPABASE_URL
+        value: your_url
+      - key: SUPABASE_KEY
+        value: your_key
