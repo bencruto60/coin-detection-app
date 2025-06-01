@@ -2,6 +2,8 @@
 from supabase import create_client
 import os
 import uuid
+from PIL import Image
+import io
 
 # Initialize model globally with lazy loading
 model = None
@@ -45,9 +47,14 @@ def detect():
         if file.filename == '':
             return jsonify({'error': 'No selected file'}), 400
 
+        # Resize input image using PIL before saving
+        image = Image.open(file.stream)
+        max_size = (640, 640)
+        image.thumbnail(max_size)  # resize while keeping aspect ratio
+
         filename = f"{uuid.uuid4()}.jpg"
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(filepath)
+        image.save(filepath)
 
         results = model.predict(filepath, conf=0.5)
         result_image_path = os.path.join(app.config['UPLOAD_FOLDER'], f"detected_{filename}")
